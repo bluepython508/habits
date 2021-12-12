@@ -1,0 +1,18 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+argon2 = { version = "0.3.2", features = ["std", "rand"] }
+chrono = { version = "0.4.19", features = ["serde"] }
+rand = "0.8.4"
+rocket = { version = "0.5.0-rc.1", features = ["json"] }
+rocket-basicauth = "2.1.1"
+serde = { version = "1.0.130", features = ["derive"] }
+sqlx = { version = "0.5.9", features = ["runtime-tokio-rustls", "macros", "chrono", "sqlite"] }
+ulid = { version = "0.5.0", features = ["serde"] }
+
+[features]
