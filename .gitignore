@@ -52,3 +52,4 @@ dist/
 # End of https://www.toptal.com/developers/gitignore/api/rust,linux,visualstudiocode
 db.sqlite*
 .env
+build/
