@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{common::Habit, user::User};
-use argon2::{PasswordHash, password_hash::PasswordHashString};
+use argon2::{password_hash::PasswordHashString, PasswordHash};
 use chrono::NaiveDate;
 use rocket::{
     fairing::{AdHoc, Fairing},
@@ -55,7 +55,14 @@ impl Db<'_> {
     async fn check_habit_owned_by(&self, habit: Ulid, user: User) -> bool {
         let id = habit.to_string();
         let user = user.id.to_string();
-        query!("SELECT id FROM habits WHERE habits.id = ? AND habits.owner = ?", id, user).fetch_one(self.0).await.is_ok()
+        query!(
+            "SELECT id FROM habits WHERE habits.id = ? AND habits.owner = ?",
+            id,
+            user
+        )
+        .fetch_one(self.0)
+        .await
+        .is_ok()
     }
 
     pub async fn habits(&self, user: User) -> Result<BTreeMap<Ulid, Habit>, Status> {
@@ -66,7 +73,7 @@ impl Db<'_> {
                     habits.name as name
                 FROM habits
                 WHERE owner = ?;",
-                user
+            user
         )
         .map(|r| {
             let id: Ulid = r.id.parse().map_err(|_| Status::InternalServerError)?;
@@ -93,8 +100,7 @@ impl Db<'_> {
             .map(|date| {
                 Some(date.date)
                     .as_ref()
-                    .map(|e| NaiveDate::from_str(e).ok())
-                    .flatten()
+                    .and_then(|e| NaiveDate::from_str(e).ok())
                     .ok_or(Status::InternalServerError)
             })
             .fetch_all(self.0)
@@ -108,7 +114,7 @@ impl Db<'_> {
 
     pub async fn get_habit(&self, user: User, id: Ulid) -> Option<Habit> {
         if !self.check_habit_owned_by(id, user).await {
-            return None
+            return None;
         }
         let id_str = id.to_string();
         let name = query!("SELECT habits.name FROM habits WHERE habits.id = ?", id_str)
@@ -129,8 +135,15 @@ impl Db<'_> {
         Some(Habit { id, name, dates })
     }
 
-    pub async fn complete_habit(&self, user: User, habit: Ulid, date: NaiveDate) -> Result<(), Status> {
-        if !self.check_habit_owned_by(habit, user).await { return Err(Status::NotFound) }
+    pub async fn complete_habit(
+        &self,
+        user: User,
+        habit: Ulid,
+        date: NaiveDate,
+    ) -> Result<(), Status> {
+        if !self.check_habit_owned_by(habit, user).await {
+            return Err(Status::NotFound);
+        }
         let id = habit.to_string();
         let date = date.to_string();
         query!(
@@ -144,8 +157,15 @@ impl Db<'_> {
         Ok(())
     }
 
-    pub async fn uncomplete_habit(&self, user: User, habit: Ulid, date: NaiveDate) -> Result<(), Status> {
-        if !self.check_habit_owned_by(habit, user).await { return Err(Status::NotFound) }
+    pub async fn uncomplete_habit(
+        &self,
+        user: User,
+        habit: Ulid,
+        date: NaiveDate,
+    ) -> Result<(), Status> {
+        if !self.check_habit_owned_by(habit, user).await {
+            return Err(Status::NotFound);
+        }
         let id = habit.to_string();
         query!(
             "DELETE FROM habits_dates WHERE habit_id=? AND date=?",
@@ -163,16 +183,24 @@ impl Db<'_> {
         let id_str = id.to_string();
         let owner = user.id.to_string();
         let name = name.as_ref();
-        query!("INSERT INTO habits(id, name, owner) VALUES (?, ?, ?)", id_str, name, owner)
-            .execute(self.0)
-            .await
-            .map_err(|_| Status::InternalServerError)?;
+        query!(
+            "INSERT INTO habits(id, name, owner) VALUES (?, ?, ?)",
+            id_str,
+            name,
+            owner
+        )
+        .execute(self.0)
+        .await
+        .map_err(|_| Status::InternalServerError)?;
         Ok(id)
     }
 
     pub async fn delete_habit(&self, user: User, id: Ulid) -> Status {
-        if !self.check_habit_owned_by(id, user).await { return Status::NotFound }
+        if !self.check_habit_owned_by(id, user).await {
+            return Status::NotFound;
+        }
         let id = id.to_string();
+        #[allow(clippy::question_mark)] // Can't be rewritten with ? as Status is not Try
         if query!(
             "DELETE FROM habits_dates WHERE habit_id=?; DELETE FROM habits WHERE id=?;",
             id,
@@ -202,15 +230,16 @@ impl Db<'_> {
             password_hash
         )
         .execute(self.0)
-        .await.unwrap();
-        // .map_err(|_| ())?;
+        .await
+        .map_err(|_| ())?;
         Ok(())
     }
 
     pub async fn get_user(&self, id_or_name: &str) -> Result<User, ()> {
         let user = query!(
             "SELECT id, username, password_hash FROM users WHERE id = ? OR username = ?",
-            id_or_name, id_or_name
+            id_or_name,
+            id_or_name
         )
         .map(|r| User {
             id: r.id.parse().unwrap(),

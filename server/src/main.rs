@@ -45,7 +45,9 @@ async fn habits(db: Db<'_>, user: User) -> Result<Json<BTreeMap<Ulid, Habit>>, S
 
 #[post("/habits", data = "<name>")]
 async fn new_habit(db: Db<'_>, user: User, name: Json<Name>) -> Result<Json<Id>, Status> {
-    db.new_habit(user, &name.name).await.map(|id| Json(Id { id }))
+    db.new_habit(user, &name.name)
+        .await
+        .map(|id| Json(Id { id }))
 }
 
 #[get("/habits/<id>")]
@@ -68,8 +70,7 @@ async fn complete_habit(db: Db<'_>, user: User, id: ParamFromStr<Ulid>) -> Statu
 
 #[delete("/habits/<id>/done")]
 async fn uncomplete_habit(db: Db<'_>, user: User, id: ParamFromStr<Ulid>) -> Status {
-    db
-        .uncomplete_habit(user, id.0, Local::today().naive_local())
+    db.uncomplete_habit(user, id.0, Local::today().naive_local())
         .await
         .map(|_| Status::Accepted)
         .into_ok_or_err()
@@ -77,10 +78,14 @@ async fn uncomplete_habit(db: Db<'_>, user: User, id: ParamFromStr<Ulid>) -> Sta
 
 #[post("/signup")]
 async fn signup(db: Db<'_>, basic_auth: BasicAuth) -> Status {
-    if User::signup(db, basic_auth.username, basic_auth.password).await.is_err() {
-        return Status::InternalServerError
+    #[allow(clippy::question_mark)] // Clippy lint is wrong, status can't be ?'d
+    if User::signup(db, basic_auth.username, basic_auth.password)
+        .await
+        .is_err()
+    {
+        return Status::InternalServerError;
     }
-    return Status::Accepted
+    Status::Accepted
 }
 
 #[get("/check_user")]
@@ -92,19 +97,28 @@ async fn check_user(_user: User) -> Status {
 fn api_notfound(_: &Request) {}
 
 #[catch(404)]
-async fn notfound(_: &Request<'_>) -> (Status, NamedFile) {
-    (
-        Status::Ok,
-        NamedFile::open("../dist/index.html").await.unwrap(),
-    )
+async fn notfound(_: &Request<'_>) -> NamedFile {
+    NamedFile::open("./build/index.html").await.unwrap()
 }
 
 #[launch]
 fn launch() -> _ {
     build()
         .attach(Db::fairing())
-        .mount("/api", routes![habits, new_habit, get_habit, delete_habit, complete_habit, uncomplete_habit, signup, check_user])
-        .mount("/", FileServer::from("../dist/"))
+        .mount(
+            "/api",
+            routes![
+                habits,
+                new_habit,
+                get_habit,
+                delete_habit,
+                complete_habit,
+                uncomplete_habit,
+                signup,
+                check_user
+            ],
+        )
+        .mount("/", FileServer::from("./build/"))
         .register("/", catchers![notfound])
         .register("/api", catchers![api_notfound])
 }

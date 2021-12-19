@@ -1,0 +1,9 @@
+version: '3'
+services:
+  server:
+    build: .
+    volumes:
+      - "./db.sqlite:/db.sqlite:rw"
+    env_file: .env
+    environment:
+      - "ROCKET_DB_URL=/db.sqlite"

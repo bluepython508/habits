@@ -1,0 +1,7 @@
+client/build/
+client/node_modules/
+dist/
+server/target/
+.env
+db.sqlite*
+.git/
