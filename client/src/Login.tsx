@@ -23,7 +23,7 @@ const Login = () => {
         }
     }), [api, username, password, setPassword]);
 
-    return <div className="container">
+    return <div className="container is-fluid is-max-desktop">
         <h1 className="title level level-item">Login</h1>
         <hr />
         <div className="field block">

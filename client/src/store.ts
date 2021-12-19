@@ -5,7 +5,6 @@ import {
   useStore as useStoreBase,
   TypedUseSelectorHook,
 } from "react-redux";
-import { today } from "./date";
 import { Habit, Habits } from "./types";
 
 const initialHabitsState: Habits = {};
@@ -13,8 +12,7 @@ const habits = createSlice({
   name: "habits",
   initialState: initialHabitsState,
   reducers: {
-    loadHabits: (state: Habits, habits: PayloadAction<Habits>) =>
-      habits.payload,
+    loadHabits: (state: Habits, { payload }: PayloadAction<Habits>) => payload,
     setHabit: (state: Habits, { payload }: PayloadAction<Habit>) => ({
       ...state,
       [payload.id]: payload,
@@ -23,15 +21,20 @@ const habits = createSlice({
       const { [payload]: _, ...rest } = state;
       return rest;
     },
-    markHabitDone: (state: Habits, { payload }: PayloadAction<string>) => {
-      state[payload].dates.push(today());
+    markHabitDone: (state: Habits, { payload: { habit, date } }: PayloadAction<{ habit: string, date: string}>) => {
+      state[habit].dates.push(date);
     },
-    markHabitUndone: (state: Habits, { payload }: PayloadAction<string>) => {
-      const now = today();
-      state[payload].dates = state[payload].dates.filter(
-        (date) => date !== now
+    markHabitUndone: (state: Habits, { payload: { habit, date } }: PayloadAction<{ habit: string, date: string }>) => {
+      state[habit].dates = state[habit].dates.filter(
+        (d) => d !== date
       );
     },
+    updateHabit: (state: Habits, { payload }: PayloadAction<Partial<Omit<Habit, 'dates'>> & { id: string }>) => {
+      const { [payload.id]: habit, ...rest } = state
+      return {
+        ...rest, [payload.id]: { ...habit, ...payload }
+      }
+    }
   },
 });
 

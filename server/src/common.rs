@@ -11,6 +11,11 @@ pub struct Habit {
     pub dates: BTreeSet<NaiveDate>,
 }
 
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Serialize, Deserialize, Hash)]
+pub struct HabitOptional {
+    pub name: Option<String>
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct Name {
     pub name: String

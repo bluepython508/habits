@@ -3,7 +3,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::{common::Habit, user::User};
+use crate::{common::{Habit, HabitOptional}, user::User};
 use argon2::{password_hash::PasswordHashString, PasswordHash};
 use chrono::NaiveDate;
 use rocket::{
@@ -250,5 +250,21 @@ impl Db<'_> {
         .await
         .map_err(|_| ())?;
         Ok(user)
+    }
+
+    pub async fn update_habit(&self, user: User, id: Ulid, update: &HabitOptional) -> Status {
+        if !self.check_habit_owned_by(id, user).await {
+            return Status::NotFound;
+        }
+        let id = id.to_string();
+        if let Some(name) = &update.name {
+            #[allow(clippy::question_mark)]
+            if query!("UPDATE habits SET name = ? WHERE id = ?", name, id)
+                .execute(self.0).await.is_err() {
+                    return Status::InternalServerError;
+                }
+        }
+
+        Status::Accepted
     }
 }

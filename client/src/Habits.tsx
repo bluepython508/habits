@@ -13,7 +13,7 @@ const AddHabitModal = ({ hide }: { hide: () => void }) => {
   }, [api, name, hide]);
 
   return (
-    <div className="modal is-active">
+    <div className="modal is-active container is-fluid">
       <div className="modal-background" onClick={hide} />
       <div className="modal-content">
         <div className="card container has-text-centered block p-3">
@@ -56,6 +56,20 @@ const AddHabitModal = ({ hide }: { hide: () => void }) => {
   );
 };
 
+function compareOn<T, U>(keyFn: (t: T) => U): (a: T, b: T) => number {
+  return (a, b) => {
+    const keyA = keyFn(a);
+    const keyB = keyFn(b)
+    if (keyA > keyB) {
+      return 1
+    } else if (keyA < keyB) {
+      return -1
+    } else {
+      return 0
+    }
+  }
+}
+
 const Habits = () => {
   const api = useApi();
   useEffect(() => {
@@ -75,7 +89,7 @@ const Habits = () => {
   return (
     <div className={addModalVisible ? "is-clipped" : ""}>
       {addModalVisible && <AddHabitModal hide={hideAddModal} />}
-      {Object.values(habits).map((habit) => (
+      {Object.values(habits).sort(compareOn(h => h.id)).map((habit) => (
         <HabitShort key={habit.id} habit={habit} />
       ))}
       <div

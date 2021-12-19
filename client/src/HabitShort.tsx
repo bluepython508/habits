@@ -8,10 +8,10 @@ const HabitShort = ({ habit }: { habit: Habit }) => {
   const doneToday = habit.dates.includes(today());
   const api = useApi();
   const setDone = useCallback(() => {
-    api.setDone(habit.id);
+    api.setDone(habit.id, today());
   }, [api, habit.id]);
   const setUndone = useCallback(() => {
-    api.setUndone(habit.id);
+    api.setUndone(habit.id, today());
   }, [api, habit.id]);
   const toggle = useCallback(
     () => (doneToday ? setUndone() : setDone()),

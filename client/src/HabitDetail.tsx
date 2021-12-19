@@ -38,6 +38,54 @@ const DeleteModal = ({ habit, hide }: { habit: Habit; hide: () => void }) => {
   );
 };
 
+const Header = ({ habit, edit }: { habit: Habit, edit: () => void }) => {
+  return <div><h1 className="title">{habit.name}</h1>
+    <button
+      className="button is-warning m-4"
+      style={{
+        position: "absolute",
+        right: 0,
+        top: 0,
+      }}
+      onClick={edit}
+    >
+      Edit
+    </button>
+  </div>
+}
+
+const EditHeader = ({ habit, stopEdit }: { habit: Habit, stopEdit: () => void }) => {
+  const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
+  const showDeleteModal = useCallback(
+    () => setDeleteModalVisible(true),
+    [setDeleteModalVisible]
+  );
+  const hideDeleteModal = useCallback(
+    () => setDeleteModalVisible(false),
+    [setDeleteModalVisible]
+  );
+  const [habitName, setName] = useState(habit.name);
+  const onChangeName = useCallback(e => setName(e.target.value), [setName]);
+  const api = useApi();
+  const save = useCallback(() => {
+    api.updateHabit({ id: habit.id, name: habitName });
+    stopEdit();
+  }, [api, habitName, stopEdit, habit])
+  return <div>
+    {
+      isDeleteModalVisible && <DeleteModal habit={habit} hide={hideDeleteModal} />
+    }
+    <div className="buttons is-centered">
+      <button className="button is-danger" onClick={showDeleteModal}>Delete</button>
+      <button className="button is-warning" onClick={stopEdit}>Cancel</button>
+      <button className="button is-success" onClick={save}>Save</button>
+    </div>
+    <div className="container is-fluid">
+      <input className="container input title is-medium control" type="text" value={habitName} onChange={onChangeName} />
+    </div>
+  </div>
+}
+
 const HabitDetail = () => {
   const { id } = useParams();
   const api = useApi();
@@ -50,15 +98,6 @@ const HabitDetail = () => {
     });
   }, [id, api, navigate]);
   const habit = useSelector((state) => state.habits[id!]);
-  const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
-  const showDeleteModal = useCallback(
-    () => setDeleteModalVisible(true),
-    [setDeleteModalVisible]
-  );
-  const hideDeleteModal = useCallback(
-    () => setDeleteModalVisible(false),
-    [setDeleteModalVisible]
-  );
   const [month, setMonth] = useState(DateTime.now());
   const nextMonth = useCallback(
     () => setMonth((month) => month.plus({ months: 1 })),
@@ -68,39 +107,33 @@ const HabitDetail = () => {
     () => setMonth((month) => month.minus({ months: 1 })),
     [setMonth]
   );
+
+  const [isEdit, setEdit] = useState(false);
+  const startEdit = useCallback(() => setEdit(true), [setEdit]);
+  const endEdit = useCallback(() => setEdit(false), [setEdit]);
+
   const dates = calendarMonth(month);
   if (habit === undefined) {
     return <></>;
   }
   return (
     <div>
-      {isDeleteModalVisible && (
-        <DeleteModal habit={habit} hide={hideDeleteModal} />
-      )}
-      <div className="has-text-centered is-clearfix mt-3 mr-3">
-        <Link
-          className="button is-link is-light m-4"
-          to="/"
-          style={{
-            position: "fixed",
-            left: 0,
-            bottom: 0,
-          }}
-        >
-          Back
-        </Link>
-        <h1 className="title">{habit.name}</h1>
-        <button
-          className="button is-danger m-4"
-          onClick={showDeleteModal}
-          style={{
-            position: "absolute",
-            right: 0,
-            top: 0,
-          }}
-        >
-          Delete
-        </button>
+      <Link
+        className="button is-link is-light m-4"
+        to="/"
+        style={{
+          position: "fixed",
+          left: 0,
+          bottom: 0,
+        }}
+      >
+        Back
+      </Link>
+      <div className="has-text-centered is-clearfix mt-4">
+        { isEdit 
+          ? <EditHeader habit={habit} stopEdit={endEdit}/>
+          : <Header habit={habit} edit={startEdit} />
+        }
       </div>
       <hr />
       <div
@@ -150,11 +183,19 @@ const HabitDetail = () => {
               {row.map(({ date, type }) => (
                 <td
                   key={date.toISODate()}
-                  className={`${
-                    habit.dates.includes(date.toISODate())
-                      ? "has-background-success"
-                      : ""
-                  } ${type === "current" ? "" : "has-text-grey"}`}
+                  className={`${habit.dates.includes(date.toISODate())
+                    ? `has-background-success${type === "current" ? "" : "-light"}`
+                    : ""
+                    } ${type === "current" ? "" : "has-text-grey-light"}`}
+                  onClick={() => {
+                    if (date < DateTime.now().endOf('day')) {
+                      if (habit.dates.includes(date.toISODate())) {
+                        api.setUndone(habit.id, date.toISODate());
+                      } else {
+                        api.setDone(habit.id, date.toISODate());
+                      }
+                    }
+                  }}
                 >
                   {date.day}
                 </td>

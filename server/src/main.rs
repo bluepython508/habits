@@ -1,9 +1,9 @@
 #![feature(let_else, result_into_ok_or_err)]
 use std::{collections::BTreeMap, str::FromStr};
 
-use chrono::Local;
+use chrono::NaiveDate;
 mod common;
-use common::{Habit, Id, Name};
+use common::{Habit, Id, Name, HabitOptional};
 use rocket::{
     build, catch, catchers, delete,
     fs::{FileServer, NamedFile},
@@ -13,7 +13,7 @@ use rocket::{
     request::FromParam,
     routes,
     serde::json::Json,
-    Request,
+    Request, put,
 };
 use rocket_basicauth::BasicAuth;
 use ulid::Ulid;
@@ -55,22 +55,27 @@ async fn get_habit(db: Db<'_>, user: User, id: ParamFromStr<Ulid>) -> Option<Jso
     db.get_habit(user, id.0).await.map(Json)
 }
 
+#[put("/habits/<id>", data = "<update>")]
+async fn update_habit(db: Db<'_>, user: User, id: ParamFromStr<Ulid>, update: Json<HabitOptional>) -> Status {
+    db.update_habit(user, id.0, &*update).await
+}
+
 #[delete("/habits/<id>")]
 async fn delete_habit(db: Db<'_>, user: User, id: ParamFromStr<Ulid>) -> Status {
     db.delete_habit(user, id.0).await
 }
 
-#[post("/habits/<id>/done")]
-async fn complete_habit(db: Db<'_>, user: User, id: ParamFromStr<Ulid>) -> Status {
-    db.complete_habit(user, id.0, Local::today().naive_local())
+#[post("/habits/<id>/<date>")]
+async fn complete_habit(db: Db<'_>, user: User, id: ParamFromStr<Ulid>, date: ParamFromStr<NaiveDate>) -> Status {
+    db.complete_habit(user, id.0, date.0)
         .await
         .map(|_| Status::Accepted)
         .into_ok_or_err()
 }
 
-#[delete("/habits/<id>/done")]
-async fn uncomplete_habit(db: Db<'_>, user: User, id: ParamFromStr<Ulid>) -> Status {
-    db.uncomplete_habit(user, id.0, Local::today().naive_local())
+#[delete("/habits/<id>/<date>")]
+async fn uncomplete_habit(db: Db<'_>, user: User, id: ParamFromStr<Ulid>, date: ParamFromStr<NaiveDate>) -> Status {
+    db.uncomplete_habit(user, id.0, date.0)
         .await
         .map(|_| Status::Accepted)
         .into_ok_or_err()
@@ -114,6 +119,7 @@ fn launch() -> _ {
                 delete_habit,
                 complete_habit,
                 uncomplete_habit,
+                update_habit,
                 signup,
                 check_user
             ],
