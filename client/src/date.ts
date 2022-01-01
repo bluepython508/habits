@@ -30,6 +30,5 @@ export function calendarMonth(base: DateTime): CalendarDay[][] {
     });
     current = current.plus({ day: 1 });
   }
-  console.log(days);
   return days;
 }

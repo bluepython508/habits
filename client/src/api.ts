@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { actions, useSelector, useDispatch } from "./store";
 import { Habit, Habits } from "./types";
 
@@ -78,15 +78,17 @@ export const useApi: () => Client = () => {
     [client, dispatch]
   );
 
-  useEffect(() => {
-    if (loginState === null) {
-      const storedLogin = localStorage.getItem("login");
-      if (storedLogin !== null) {
-        const {username, password} = JSON.parse(storedLogin);
-        api.login(username, password)
-      }
+  if (loginState === null) {
+    const storedLogin = localStorage.getItem("login");
+    if (storedLogin !== null) {
+      const { username, password } = JSON.parse(storedLogin);
+      dispatch(actions.login({ username, password }));
+      client.get('/check_user', { auth: { username, password } }).catch(() => {
+        localStorage.removeItem("login");
+        dispatch(actions.logout())
+      })
     }
-  })
+  }
 
   return api;
 };
