@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install sqlite3 && apt-get clean
 # Force cargo to update index - lazy_static doesn't have a binary, so will fail, but only after updating index
 RUN cargo install lazy_static || true
 COPY server/ /app/
-RUN --mount=type=cache,target=/app/target cargo build --release -Z no-index-update  && cp /app/target/release/server /app/server
+RUN --mount=type=cache,target=/app/target cargo build --release && cp /app/target/release/server /app/server
 
 FROM debian:buster-slim AS final
 WORKDIR /app

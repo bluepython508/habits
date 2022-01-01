@@ -10,6 +10,7 @@ use rocket::{
 };
 use rocket_basicauth::BasicAuth;
 use ulid::Ulid;
+use anyhow::Result;
 
 use crate::db::Db;
 
@@ -20,7 +21,7 @@ pub struct User {
 }
 
 impl User {
-    pub async fn signup(db: Db<'_>, name: String, password: String) -> Result<Self, ()> {
+    pub async fn signup(db: Db<'_>, name: String, password: String) -> Result<Self> {
         let user = User {
             id: Ulid::new(),
             username: name,
@@ -28,8 +29,7 @@ impl User {
                 Argon2::default(),
                 password,
                 SaltString::generate(thread_rng()).as_ref(),
-            )
-            .map_err(|_| ())?
+            )?
             .serialize(),
         };
         db.add_user(
