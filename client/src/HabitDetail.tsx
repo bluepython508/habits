@@ -41,7 +41,7 @@ const DeleteModal = ({ habit, hide }: { habit: Habit; hide: () => void }) => {
 const Header = ({ habit, edit }: { habit: Habit, edit: () => void }) => {
   return <div>
     <h1 className="title">{habit.name}</h1>
-    <p>{habit.description}</p>
+    <pre>{habit.description}</pre>
     <button
       className="button is-warning m-4"
       style={{
