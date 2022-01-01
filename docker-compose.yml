@@ -3,6 +3,7 @@ volumes:
   db:
 services:
   server:
+    restart: on-failure
     image: ghcr.io/bluepython508/habits:master
     env_file: .env
     environment:
