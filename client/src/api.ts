@@ -34,6 +34,7 @@ export const useApi: () => Client = () => {
           actions.setHabit({
             id: response.data.id,
             name,
+            description: "",
             dates: [],
           })
         );

@@ -1,6 +1,7 @@
 export interface Habit {
   id: string;
   name: string;
+  description: string;
   dates: string[];
 }
 

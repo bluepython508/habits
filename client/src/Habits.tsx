@@ -99,6 +99,7 @@ const Habits = () => {
           position: "fixed",
           bottom: 0,
           right: 0,
+          zIndex: 100
         }}
       >
         <button className="button is-primary m-4" onClick={showAddModal}>

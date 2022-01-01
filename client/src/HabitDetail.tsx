@@ -39,7 +39,9 @@ const DeleteModal = ({ habit, hide }: { habit: Habit; hide: () => void }) => {
 };
 
 const Header = ({ habit, edit }: { habit: Habit, edit: () => void }) => {
-  return <div><h1 className="title">{habit.name}</h1>
+  return <div>
+    <h1 className="title">{habit.name}</h1>
+    <p>{habit.description}</p>
     <button
       className="button is-warning m-4"
       style={{
@@ -65,12 +67,14 @@ const EditHeader = ({ habit, stopEdit }: { habit: Habit, stopEdit: () => void })
     [setDeleteModalVisible]
   );
   const [habitName, setName] = useState(habit.name);
+  const [habitDesc, setDesc] = useState(habit.description);
   const onChangeName = useCallback(e => setName(e.target.value), [setName]);
+  const onChangeDesc = useCallback(e => setDesc(e.target.value), [setDesc]);
   const api = useApi();
   const save = useCallback(() => {
-    api.updateHabit({ id: habit.id, name: habitName });
+    api.updateHabit({ id: habit.id, name: habitName === habit.name ? undefined : habitName, description: habitDesc === habit.description ? undefined : habitDesc });
     stopEdit();
-  }, [api, habitName, stopEdit, habit])
+  }, [api, habitName, stopEdit, habit, habitDesc])
   return <div>
     {
       isDeleteModalVisible && <DeleteModal habit={habit} hide={hideDeleteModal} />
@@ -82,6 +86,7 @@ const EditHeader = ({ habit, stopEdit }: { habit: Habit, stopEdit: () => void })
     </div>
     <div className="container is-fluid">
       <input className="container input title is-medium control" type="text" value={habitName} onChange={onChangeName} />
+      <textarea className="textarea control has-text-left" value={habitDesc} onChange={onChangeDesc} />
     </div>
   </div>
 }
@@ -125,13 +130,14 @@ const HabitDetail = () => {
           position: "fixed",
           left: 0,
           bottom: 0,
+          zIndex: 100
         }}
       >
         Back
       </Link>
       <div className="has-text-centered is-clearfix mt-4">
-        { isEdit 
-          ? <EditHeader habit={habit} stopEdit={endEdit}/>
+        {isEdit
+          ? <EditHeader habit={habit} stopEdit={endEdit} />
           : <Header habit={habit} edit={startEdit} />
         }
       </div>

@@ -32,7 +32,12 @@ const habits = createSlice({
     updateHabit: (state: Habits, { payload }: PayloadAction<Partial<Omit<Habit, 'dates'>> & { id: string }>) => {
       const { [payload.id]: habit, ...rest } = state
       return {
-        ...rest, [payload.id]: { ...habit, ...payload }
+        ...rest, [payload.id]: {
+          id: payload.id,
+          name: payload.name ?? habit.name,
+          description: payload.description ?? habit.description,
+          dates: habit.dates
+        }
       }
     }
   },

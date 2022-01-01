@@ -8,12 +8,14 @@ use ulid::Ulid;
 pub struct Habit {
     pub id: Ulid,
     pub name: String,
+    pub description: String,
     pub dates: BTreeSet<NaiveDate>,
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Serialize, Deserialize, Hash)]
 pub struct HabitOptional {
-    pub name: Option<String>
+    pub name: Option<String>,
+    pub description: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]

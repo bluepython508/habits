@@ -74,6 +74,7 @@ struct DbHabit {
     #[sql(as_str, references(DbUser::id, on_delete = "cascade"))]
     owner: Ulid,
     name: String,
+    description: String,
 }
 
 #[derive(Table)]
@@ -97,7 +98,7 @@ impl Db<'_> {
                         return Err($r);
                     }
                 }
-            }
+            };
         }
         AdHoc::try_on_ignite("Db", |r| async move {
             let DbConfig { db_url } = fairing_try!(r.figment().extract() => r);
@@ -142,6 +143,7 @@ impl Db<'_> {
                     Habit {
                         id: x.id,
                         name: x.name,
+                        description: Default::default(),
                         dates: Default::default(),
                     },
                 )
@@ -165,12 +167,12 @@ impl Db<'_> {
     pub async fn get_habit(&self, user: User, id: Ulid) -> Result<Habit> {
         self.check_habit_owned_by(id, user).await?;
 
-        let Some((name, )) = self
+        let Some((name, description)) = self
             .0
-            .select((DbHabit::name,))
+            .select((DbHabit::name, DbHabit::description))
             .r#where(DbHabit::id.equals(id))
             .limit(1)
-            .fetch_all::<(String,)>()
+            .fetch_all::<(String, String)>()
             .await?
             .pop() else { return Err(anyhow::anyhow!("Habit not found")).context(Status::NotFound) };
         let dates: BTreeSet<chrono::NaiveDate> = self
@@ -184,7 +186,12 @@ impl Db<'_> {
             .map(|x| x.0)
             .collect();
 
-        Ok(Habit { id, name, dates })
+        Ok(Habit {
+            id,
+            name,
+            description,
+            dates,
+        })
     }
 
     pub async fn complete_habit(&self, user: User, habit: Ulid, date: NaiveDate) -> Result<()> {
@@ -214,7 +221,7 @@ impl Db<'_> {
         let id = Ulid::new();
         self.0
             .insert_into(DbHabit::COLUMNS)
-            .values((id, user.id, name))
+            .values((id, user.id, name, String::new()))
             .execute()
             .await?;
         Ok(id)
@@ -276,7 +283,15 @@ impl Db<'_> {
             self.0
                 .update()
                 .r#where(DbHabit::id.equals(id))
-                .set(DbHabit::name, name.to_owned())
+                .set(DbHabit::name, name.clone())
+                .execute()
+                .await?
+        }
+        if let Some(description) = &update.description {
+            self.0
+                .update()
+                .r#where(DbHabit::id.equals(id))
+                .set(DbHabit::description, description.clone())
                 .execute()
                 .await?
         }
