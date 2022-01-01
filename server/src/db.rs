@@ -152,6 +152,7 @@ impl Db<'_> {
                 .0
                 .select((DbHabitDate::date,))
                 .r#where(DbHabitDate::habit_id.equals(*id))
+                .limit(64)
                 .fetch_all::<(NaiveDate,)>()
                 .await?
                 .into_iter()
@@ -176,7 +177,6 @@ impl Db<'_> {
             .0
             .select((DbHabitDate::date,))
             .r#where(DbHabitDate::habit_id.equals(id))
-            .limit(64)
             .order_by(DbHabitDate::date, Ordering::Descending)
             .fetch_all::<(NaiveDate,)>()
             .await?

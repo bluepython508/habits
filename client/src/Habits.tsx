@@ -73,7 +73,9 @@ function compareOn<T, U>(keyFn: (t: T) => U): (a: T, b: T) => number {
 const Habits = () => {
   const api = useApi();
   useEffect(() => {
-    api.habits();
+    api.habits().then(habits => {
+      Promise.all(Object.keys(habits).map(api.getHabit))
+    });
   }, [api]);
   const habits = useSelector((state) => state.habits);
   const [addModalVisible, setAddModalVisible] = useState(false);

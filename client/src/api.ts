@@ -1,14 +1,14 @@
 import axios from "axios";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { actions, useSelector, useDispatch } from "./store";
-import { Habit } from "./types";
+import { Habit, Habits } from "./types";
 
 export interface Client {
   updateHabit(habit: Partial<Omit<Habit, 'dates'>> & { id: string }): Promise<void>;
   newHabit(name: string): Promise<void>;
   deleteHabit(id: string): Promise<void>;
   getHabit(id: string): Promise<void>;
-  habits(): Promise<void>;
+  habits(): Promise<Habits>;
   setDone(habit: string, date: string): Promise<void>;
   setUndone(habit: string, date: string): Promise<void>;
   login(username: string, password: string): Promise<void>;
@@ -18,12 +18,6 @@ export interface Client {
 export const useApi: () => Client = () => {
   const dispatch = useDispatch();
   const loginState = useSelector((state) => state.login);
-  if (loginState === null) {
-    const storedLogin = localStorage.getItem("login");
-    if (storedLogin !== null) {
-      dispatch(actions.login(JSON.parse(storedLogin)))
-    }
-  }
   const client = useMemo(
     () =>
       axios.create({
@@ -55,6 +49,7 @@ export const useApi: () => Client = () => {
       habits: async () => {
         const response = await client.get("habits");
         dispatch(actions.loadHabits(response.data));
+        return response.data;
       },
       setDone: async (habit, date) => {
         dispatch(actions.markHabitDone({ habit, date }));
@@ -70,15 +65,27 @@ export const useApi: () => Client = () => {
       },
       login: async (username, password) => {
         await client.get('/check_user', { auth: { username, password } });
-        localStorage.setItem("login", JSON.stringify({ username, password }))
+        localStorage.setItem("login", JSON.stringify({ username, password }));
         dispatch(actions.login({ username, password }));
       },
       signup: async (username: string, password: string) => {
         await client.post('/signup', {}, { auth: { username, password } });
+        localStorage.setItem("login", JSON.stringify({ username, password }));
         dispatch(actions.login({ username, password }));
       }
     }),
     [client, dispatch]
   );
+
+  useEffect(() => {
+    if (loginState === null) {
+      const storedLogin = localStorage.getItem("login");
+      if (storedLogin !== null) {
+        const {username, password} = JSON.parse(storedLogin);
+        api.login(username, password)
+      }
+    }
+  })
+
   return api;
 };
