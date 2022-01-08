@@ -28,6 +28,9 @@ impl User {
         if password.is_empty() {
             return Err(anyhow::anyhow!("Expected non-empty password")).context(Status::BadRequest);
         }
+        if db.get_user(&name).await.is_ok() {
+            return Err(anyhow::anyhow!("Expected unused username")).context(Status::BadRequest);
+        }
         let user = User {
             id: Ulid::new(),
             username: name,
