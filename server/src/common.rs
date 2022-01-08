@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
-use serde::{Serialize, Deserialize};
 use chrono::NaiveDate;
+use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Serialize, Deserialize, Hash)]
@@ -20,10 +20,10 @@ pub struct HabitOptional {
 
 #[derive(Serialize, Deserialize)]
 pub struct Name {
-    pub name: String
+    pub name: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Id {
-    pub id: Ulid
+    pub id: Ulid,
 }

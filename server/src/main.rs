@@ -41,10 +41,14 @@ where
     'o: 'r,
 {
     fn respond_to(self, request: &'r Request<'_>) -> rocket::response::Result<'o> {
-        eprintln!("{:?}", &self);
-        self.0
-            .downcast::<Status>()
-            .unwrap_or(Status::InternalServerError)
+        let message = self.0.to_string();
+        eprintln!("{}", message);
+        (
+            self.0
+                .downcast::<Status>()
+                .unwrap_or(Status::InternalServerError),
+            message,
+        )
             .respond_to(request)
     }
 }

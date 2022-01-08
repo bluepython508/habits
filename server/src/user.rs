@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use argon2::{
     password_hash::{PasswordHashString, SaltString},
     Argon2, PasswordHash,
@@ -10,7 +11,6 @@ use rocket::{
 };
 use rocket_basicauth::BasicAuth;
 use ulid::Ulid;
-use anyhow::Result;
 
 use crate::db::Db;
 
@@ -22,6 +22,12 @@ pub struct User {
 
 impl User {
     pub async fn signup(db: Db<'_>, name: String, password: String) -> Result<Self> {
+        if name.is_empty() {
+            return Err(anyhow::anyhow!("Expected non-empty username")).context(Status::BadRequest);
+        }
+        if password.is_empty() {
+            return Err(anyhow::anyhow!("Expected non-empty password")).context(Status::BadRequest);
+        }
         let user = User {
             id: Ulid::new(),
             username: name,
@@ -38,7 +44,7 @@ impl User {
             user.hashed_password.password_hash(),
         )
         .await?;
-        
+
         Ok(user)
     }
 }
@@ -51,9 +57,14 @@ impl<'r> FromRequest<'r> for User {
         let Outcome::Success(db) = request.guard::<Db<'_>>().await else { return Outcome::Failure((Status::InternalServerError, ())) };
         let Outcome::Success(basic_auth) = request.guard::<BasicAuth>().await else { return Outcome::Failure((Status::Unauthorized, ())) };
         let Ok(user) = db.get_user(&basic_auth.username).await else { return Outcome::Failure((Status::Unauthorized, ())) };
-        if user.hashed_password.password_hash().verify_password(&[&Argon2::default()], basic_auth.password).is_err() {
-            return Outcome::Failure((Status::Unauthorized, ()))
+        if user
+            .hashed_password
+            .password_hash()
+            .verify_password(&[&Argon2::default()], basic_auth.password)
+            .is_err()
+        {
+            return Outcome::Failure((Status::Unauthorized, ()));
         }
-        return Outcome::Success(user)
+        return Outcome::Success(user);
     }
 }

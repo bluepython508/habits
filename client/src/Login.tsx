@@ -37,8 +37,8 @@ const Login = () => {
             </div>
         </div>
         <div className="buttons is-right">
-            <button className="button is-primary" onClick={signUp}>Create Account</button>
-            <button className="button is-primary" onClick={login}>Login</button>
+            <button className="button is-primary" onClick={signUp} disabled={!(username.length > 0 && password.length > 0)}>Create Account</button>
+            <button className="button is-primary" onClick={login} disabled={!(username.length > 0 && password.length > 0)}>Login</button>
         </div>
     </div>;
 };
