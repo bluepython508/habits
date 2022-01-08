@@ -171,7 +171,7 @@ const HabitDetail = () => {
           />
         </div>
       </div>
-      <table className="table container has-text-centered">
+      <table className="table container has-text-centered mb-4">
         <thead>
           <tr>
             <th>M</th>
