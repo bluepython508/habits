@@ -254,7 +254,7 @@ impl Db<'_> {
         let id_cond = if let Ok(id) = id_or_name.parse::<Ulid>() {
             DbUser::id.equals(id)
         } else {
-            CondExpr::TRUE
+            CondExpr::FALSE
         };
         let DbUser {
             id,
