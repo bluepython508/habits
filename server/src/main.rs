@@ -1,4 +1,4 @@
-#![feature(let_else, result_into_ok_or_err)]
+#![feature(let_else)]
 use std::{collections::BTreeMap, str::FromStr};
 
 use chrono::NaiveDate;
