@@ -4,7 +4,9 @@ import { actions, useSelector, useDispatch } from "./store";
 import { Habit, Habits } from "./types";
 
 export interface Client {
-  updateHabit(habit: Partial<Omit<Habit, 'dates'>> & { id: string }): Promise<void>;
+  updateHabit(
+    habit: Partial<Omit<Habit, "dates">> & { id: string }
+  ): Promise<void>;
   newHabit(name: string): Promise<void>;
   deleteHabit(id: string): Promise<void>;
   getHabit(id: string): Promise<void>;
@@ -65,15 +67,15 @@ export const useApi: () => Client = () => {
         await client.put(`habits/${habit.id}`, habit);
       },
       login: async (username, password) => {
-        await client.get('/check_user', { auth: { username, password } });
+        await client.get("/check_user", { auth: { username, password } });
         localStorage.setItem("login", JSON.stringify({ username, password }));
         dispatch(actions.login({ username, password }));
       },
       signup: async (username: string, password: string) => {
-        await client.post('/signup', {}, { auth: { username, password } });
+        await client.post("/signup", {}, { auth: { username, password } });
         localStorage.setItem("login", JSON.stringify({ username, password }));
         dispatch(actions.login({ username, password }));
-      }
+      },
     }),
     [client, dispatch]
   );
@@ -83,10 +85,10 @@ export const useApi: () => Client = () => {
     if (storedLogin !== null) {
       const { username, password } = JSON.parse(storedLogin);
       dispatch(actions.login({ username, password }));
-      client.get('/check_user', { auth: { username, password } }).catch(() => {
+      client.get("/check_user", { auth: { username, password } }).catch(() => {
         localStorage.removeItem("login");
-        dispatch(actions.logout())
-      })
+        dispatch(actions.logout());
+      });
     }
   }
 

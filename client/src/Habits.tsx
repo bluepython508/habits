@@ -59,22 +59,22 @@ const AddHabitModal = ({ hide }: { hide: () => void }) => {
 function compareOn<T, U>(keyFn: (t: T) => U): (a: T, b: T) => number {
   return (a, b) => {
     const keyA = keyFn(a);
-    const keyB = keyFn(b)
+    const keyB = keyFn(b);
     if (keyA > keyB) {
-      return 1
+      return 1;
     } else if (keyA < keyB) {
-      return -1
+      return -1;
     } else {
-      return 0
+      return 0;
     }
-  }
+  };
 }
 
 const Habits = () => {
   const api = useApi();
   useEffect(() => {
-    api.habits().then(habits => {
-      Promise.all(Object.keys(habits).map(api.getHabit))
+    api.habits().then((habits) => {
+      Promise.all(Object.keys(habits).map(api.getHabit));
     });
   }, [api]);
   const habits = useSelector((state) => state.habits);
@@ -91,15 +91,17 @@ const Habits = () => {
   return (
     <div className={addModalVisible ? "is-clipped" : ""}>
       {addModalVisible && <AddHabitModal hide={hideAddModal} />}
-      {Object.values(habits).sort(compareOn(h => h.id)).map((habit) => (
-        <HabitShort key={habit.id} habit={habit} />
-      ))}
+      {Object.values(habits)
+        .sort(compareOn((h) => h.id))
+        .map((habit) => (
+          <HabitShort key={habit.id} habit={habit} />
+        ))}
       <div
         style={{
           position: "fixed",
           bottom: 0,
           right: 0,
-          zIndex: 100
+          zIndex: 100,
         }}
       >
         <button className="button is-primary m-4" onClick={showAddModal}>

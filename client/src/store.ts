@@ -21,25 +21,37 @@ const habits = createSlice({
       const { [payload]: _, ...rest } = state;
       return rest;
     },
-    markHabitDone: (state: Habits, { payload: { habit, date } }: PayloadAction<{ habit: string, date: string}>) => {
+    markHabitDone: (
+      state: Habits,
+      {
+        payload: { habit, date },
+      }: PayloadAction<{ habit: string; date: string }>
+    ) => {
       state[habit].dates.push(date);
     },
-    markHabitUndone: (state: Habits, { payload: { habit, date } }: PayloadAction<{ habit: string, date: string }>) => {
-      state[habit].dates = state[habit].dates.filter(
-        (d) => d !== date
-      );
+    markHabitUndone: (
+      state: Habits,
+      {
+        payload: { habit, date },
+      }: PayloadAction<{ habit: string; date: string }>
+    ) => {
+      state[habit].dates = state[habit].dates.filter((d) => d !== date);
     },
-    updateHabit: (state: Habits, { payload }: PayloadAction<Partial<Omit<Habit, 'dates'>> & { id: string }>) => {
-      const { [payload.id]: habit, ...rest } = state
+    updateHabit: (
+      state: Habits,
+      { payload }: PayloadAction<Partial<Omit<Habit, "dates">> & { id: string }>
+    ) => {
+      const { [payload.id]: habit, ...rest } = state;
       return {
-        ...rest, [payload.id]: {
+        ...rest,
+        [payload.id]: {
           id: payload.id,
           name: payload.name ?? habit.name,
           description: payload.description ?? habit.description,
-          dates: habit.dates
-        }
-      }
-    }
+          dates: habit.dates,
+        },
+      };
+    },
   },
 });
 
