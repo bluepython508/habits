@@ -14,7 +14,7 @@ use rocket::{
     Request,
 };
 use serde::Deserialize;
-use sql::{CondExpr, Ordering, Pool, Table};
+use sql::{Ordering, Pool, Table};
 use ulid::Ulid;
 
 #[cfg(debug_assertions)]
@@ -250,12 +250,7 @@ impl Db<'_> {
         Ok(())
     }
 
-    pub async fn get_user(&self, id_or_name: &str) -> Result<User> {
-        let id_cond = if let Ok(id) = id_or_name.parse::<Ulid>() {
-            DbUser::id.equals(id)
-        } else {
-            CondExpr::FALSE
-        };
+    pub async fn get_user_by_name(&self, name: &str) -> Result<User> {
         let DbUser {
             id,
             username,
@@ -263,12 +258,12 @@ impl Db<'_> {
         } = self
             .0
             .select(DbUser::COLUMNS)
-            .r#where(id_cond.or(DbUser::username.equals(id_or_name.to_owned())))
+            .r#where(DbUser::username.equals(name.to_owned()))
             .limit(1)
             .fetch_all::<DbUser>()
             .await?
             .pop()
-            .ok_or_else(|| anyhow::anyhow!("User {} not found", id_or_name))
+            .ok_or_else(|| anyhow::anyhow!("User {} not found", name))
             .context(Status::NotFound)?;
         Ok(User {
             id,

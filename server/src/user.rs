@@ -28,7 +28,7 @@ impl User {
         if password.is_empty() {
             return Err(anyhow::anyhow!("Expected non-empty password")).context(Status::BadRequest);
         }
-        if db.get_user(&name).await.is_ok() {
+        if db.get_user_by_name(&name).await.is_ok() {
             return Err(anyhow::anyhow!("Expected unused username")).context(Status::BadRequest);
         }
         let user = User {
@@ -59,7 +59,7 @@ impl<'r> FromRequest<'r> for User {
     async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
         let Outcome::Success(db) = request.guard::<Db<'_>>().await else { return Outcome::Failure((Status::InternalServerError, ())) };
         let Outcome::Success(basic_auth) = request.guard::<BasicAuth>().await else { return Outcome::Failure((Status::Unauthorized, ())) };
-        let Ok(user) = db.get_user(&basic_auth.username).await else { return Outcome::Failure((Status::Unauthorized, ())) };
+        let Ok(user) = db.get_user_by_name(&basic_auth.username).await else { return Outcome::Failure((Status::Unauthorized, ())) };
         if user
             .hashed_password
             .password_hash()
