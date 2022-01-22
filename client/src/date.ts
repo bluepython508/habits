@@ -1,9 +1,5 @@
 import { DateTime } from "luxon";
 
-export function today(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
 export type CalendarDay = {
   date: DateTime;
   type: "previous" | "current" | "next";

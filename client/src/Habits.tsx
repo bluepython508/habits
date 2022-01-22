@@ -1,4 +1,6 @@
+import { DateTime } from "luxon";
 import { useCallback, useEffect, useState } from "react";
+import { useSwipeable } from "react-swipeable";
 import { useApi } from "./api";
 import HabitShort from "./HabitShort";
 import { useSelector } from "./store";
@@ -88,14 +90,41 @@ const Habits = () => {
     [setAddModalVisible]
   );
 
+  const [day, setDay] = useState(DateTime.now())
+  const nextDay = useCallback(() => setDay(day => day.plus({ days: day.endOf('day') > DateTime.now() ? 0 : 1 })), [setDay])
+  const prevDay = useCallback(() => setDay(day => day.minus({ days: 1 })), [setDay])
+
+  const swipingHandlers = useSwipeable({
+    onSwipedRight: prevDay,
+    onSwipedLeft: nextDay,
+    preventDefaultTouchmoveEvent: true
+  })
+
   return (
-    <div className={addModalVisible ? "is-clipped" : ""}>
+    <div className={addModalVisible ? "is-clipped" : ""} {...swipingHandlers}>
       {addModalVisible && <AddHabitModal hide={hideAddModal} />}
+      <div className="has-background-white" style={{
+        // position: "sticky",
+        top: 0
+      }}>
+        <div className="level is-mobile container">
+          <div className="level-left">
+            <button onClick={prevDay} className="ml-2 mt-2 button">{'<'}</button>
+          </div>
+          <h2 className="level-item title has-text-centered">{day.toISODate()}</h2>
+          <div className="level-right">
+            <button onClick={nextDay} className="button mr-2 mt-2" disabled={day.endOf('day') > DateTime.now()}>{'>'}</button>
+          </div>
+        </div>
+        <hr />
+      </div>
+      <div {...swipingHandlers}>
       {Object.values(habits)
         .sort(compareOn((h) => h.id))
         .map((habit) => (
-          <HabitShort key={habit.id} habit={habit} />
+          <HabitShort key={habit.id} habit={habit} asDay={day.toISODate()} />
         ))}
+      </div>
       <div
         style={{
           position: "fixed",
