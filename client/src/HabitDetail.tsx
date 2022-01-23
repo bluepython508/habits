@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import { useCallback, useEffect, useState } from "react";
+import { useMediaQuery } from "react-responsive";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useApi } from "./api";
 import { calendarMonth } from "./date";
@@ -42,9 +43,9 @@ const Header = ({ habit, edit }: { habit: Habit; edit: () => void }) => {
   return (
     <div>
       <h1 className="title">{habit.name}</h1>
-      <pre className="container box content is-family-primary">
+      {habit.description && <pre className="container box content is-family-primary">
         {habit.description}
-      </pre>
+      </pre>}
       <button
         className="button is-warning m-4"
         style={{
@@ -89,12 +90,13 @@ const EditHeader = ({
     });
     stopEdit();
   }, [api, habitName, stopEdit, habit, habitDesc]);
+  const isMobile = useMediaQuery({ query: `(max-width: 768px)` })
   return (
     <div>
       {isDeleteModalVisible && (
         <DeleteModal habit={habit} hide={hideDeleteModal} />
       )}
-      <div className="buttons is-centered">
+      <div className={`buttons is-centered ${isMobile ? 'pl-6 ml-3' : ''}`}>
         <button className="button is-danger" onClick={showDeleteModal}>
           Delete
         </button>
@@ -111,11 +113,13 @@ const EditHeader = ({
           type="text"
           value={habitName}
           onChange={onChangeName}
+          placeholder="Name"
         />
         <textarea
           className="textarea control has-text-left"
           value={habitDesc}
           onChange={onChangeDesc}
+          placeholder="Description"
         />
       </div>
     </div>
@@ -160,7 +164,7 @@ const HabitDetail = () => {
         style={{
           position: "fixed",
           left: 0,
-          bottom: 0,
+          top: 0,
           zIndex: 100,
         }}
       >
