@@ -90,30 +90,33 @@ const Habits = () => {
     [setAddModalVisible]
   );
 
-  const [day, setDay] = useState(DateTime.now())
-  const nextDay = useCallback(() => setDay(day => day.plus({ days: day.endOf('day') > DateTime.now() ? 0 : 1 })), [setDay])
-  const prevDay = useCallback(() => setDay(day => day.minus({ days: 1 })), [setDay])
+  const [week, setWeek] = useState(DateTime.now().startOf('week'))
+  const nextWeek = useCallback(() => setWeek(week => week.plus({ weeks: week.endOf('week') > DateTime.now() ? 0 : 1 })), [setWeek])
+  const prevWeek = useCallback(() => setWeek(week => week.minus({ weeks: 1 })), [setWeek])
 
   const swipingHandlers = useSwipeable({
-    onSwipedRight: prevDay,
-    onSwipedLeft: nextDay,
+    onSwipedRight: prevWeek,
+    onSwipedLeft: nextWeek,
     preventDefaultTouchmoveEvent: true
   })
 
   return (
-    <div className={addModalVisible ? "is-clipped" : ""} {...swipingHandlers}>
+    <div className={addModalVisible ? "is-clipped" : ""} {...swipingHandlers} style={{
+      height: '100vh'
+    }}>
       {addModalVisible && <AddHabitModal hide={hideAddModal} />}
       <div className="has-background-white" style={{
-        // position: "sticky",
-        top: 0
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
       }}>
         <div className="level is-mobile container">
           <div className="level-left">
-            <button onClick={prevDay} className="ml-2 mt-2 button">{'<'}</button>
+            <button onClick={prevWeek} className="ml-2 mt-2 button">{'<'}</button>
           </div>
-          <h2 className="level-item title has-text-centered">{day.toISODate()}</h2>
+          <h2 className="level-item title is-4 has-text-centered">Week of {week.toISODate()}</h2>
           <div className="level-right">
-            <button onClick={nextDay} className="button mr-2 mt-2" disabled={day.endOf('day') > DateTime.now()}>{'>'}</button>
+            <button onClick={nextWeek} className="button mr-2 mt-2" disabled={week.endOf('week') > DateTime.now()}>{'>'}</button>
           </div>
         </div>
         <hr />
@@ -122,7 +125,7 @@ const Habits = () => {
       {Object.values(habits)
         .sort(compareOn((h) => h.id))
         .map((habit) => (
-          <HabitShort key={habit.id} habit={habit} asDay={day.toISODate()} />
+          <HabitShort key={habit.id} habit={habit} week={week} />
         ))}
       </div>
       <div
