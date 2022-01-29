@@ -38,6 +38,7 @@ export const useApi: () => Client = () => {
             name,
             description: "",
             dates: [],
+            goal: "",
           })
         );
       },

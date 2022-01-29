@@ -3,6 +3,7 @@ export interface Habit {
   name: string;
   description: string;
   dates: string[];
+  goal: string;
 }
 
 export type Habits = {

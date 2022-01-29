@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useApi } from "./api";
 import { calendarMonth } from "./date";
 import { error } from "./Error";
+import { Goal, parseGoal } from "./goal";
 import { useSelector } from "./store";
 import { Habit } from "./types";
 
@@ -48,6 +49,7 @@ const Header = ({ habit, edit }: { habit: Habit; edit: () => void }) => {
           {habit.description}
         </pre>
       )}
+      <Goal habit={habit} date={DateTime.now().startOf("week")} />
       <button
         className="button is-warning m-4"
         style={{
@@ -81,17 +83,29 @@ const EditHeader = ({
   );
   const [habitName, setName] = useState(habit.name);
   const [habitDesc, setDesc] = useState(habit.description);
+  const [habitGoal, setGoal] = useState(habit.goal);
   const onChangeName = useCallback((e) => setName(e.target.value), [setName]);
   const onChangeDesc = useCallback((e) => setDesc(e.target.value), [setDesc]);
+  const onChangeGoal = useCallback(
+    (e) => {
+      if (e.target.value != 0) {
+        setGoal(JSON.stringify({ perWeek: e.target.value }));
+      } else {
+        setGoal("");
+      }
+    },
+    [setGoal]
+  );
   const api = useApi();
   const save = useCallback(() => {
     api.updateHabit({
       id: habit.id,
       name: habitName === habit.name ? undefined : habitName,
       description: habitDesc === habit.description ? undefined : habitDesc,
+      goal: habitGoal === habit.goal ? undefined : habitGoal,
     });
     stopEdit();
-  }, [api, habitName, stopEdit, habit, habitDesc]);
+  }, [api, habitName, stopEdit, habit, habitDesc, habitGoal]);
   const isMobile = useMediaQuery({ query: `(max-width: 768px)` });
   return (
     <div>
@@ -116,6 +130,15 @@ const EditHeader = ({
           value={habitName}
           onChange={onChangeName}
           placeholder="Name"
+        />
+        <input
+          className="container input control"
+          type="number"
+          value={parseGoal(habitGoal)?.perWeek ?? 0}
+          onChange={onChangeGoal}
+          placeholder="Goal"
+          min="0"
+          max="7"
         />
         <textarea
           className="textarea control has-text-left"

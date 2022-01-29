@@ -75,6 +75,7 @@ struct DbHabit {
     owner: Ulid,
     name: String,
     description: String,
+    goal: String,
 }
 
 #[derive(Table)]
@@ -143,6 +144,7 @@ impl Db<'_> {
                     Habit {
                         id: x.id,
                         name: x.name,
+                        goal: x.goal,
                         description: Default::default(),
                         dates: Default::default(),
                     },
@@ -167,12 +169,12 @@ impl Db<'_> {
     pub async fn get_habit(&self, user: User, id: Ulid) -> Result<Habit> {
         self.check_habit_owned_by(id, user).await?;
 
-        let Some((name, description)) = self
+        let Some((name, description, goal)) = self
             .0
-            .select((DbHabit::name, DbHabit::description))
+            .select((DbHabit::name, DbHabit::description, DbHabit::goal))
             .r#where(DbHabit::id.equals(id))
             .limit(1)
-            .fetch_all::<(String, String)>()
+            .fetch_all::<(String, String, String)>()
             .await?
             .pop() else { return Err(anyhow::anyhow!("Habit not found")).context(Status::NotFound) };
         let dates: BTreeSet<chrono::NaiveDate> = self
@@ -191,6 +193,7 @@ impl Db<'_> {
             name,
             description,
             dates,
+            goal,
         })
     }
 
@@ -221,7 +224,7 @@ impl Db<'_> {
         let id = Ulid::new();
         self.0
             .insert_into(DbHabit::COLUMNS)
-            .values((id, user.id, name, String::new()))
+            .values((id, user.id, name, String::new(), String::new()))
             .execute()
             .await?;
         Ok(id)
@@ -287,6 +290,14 @@ impl Db<'_> {
                 .update()
                 .r#where(DbHabit::id.equals(id))
                 .set(DbHabit::description, description.clone())
+                .execute()
+                .await?
+        }
+        if let Some(goal) = &update.goal {
+            self.0
+                .update()
+                .r#where(DbHabit::id.equals(id))
+                .set(DbHabit::goal, goal.clone())
                 .execute()
                 .await?
         }

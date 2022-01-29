@@ -88,7 +88,6 @@ const Habits = () => {
       Promise.all(Object.keys(habits).map(api.getHabit));
     });
   }, [api]);
-  const habits = useSelector((state) => state.habits);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const showAddModal = useCallback(
     () => setAddModalVisible(true),

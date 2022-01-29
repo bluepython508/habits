@@ -10,12 +10,14 @@ pub struct Habit {
     pub name: String,
     pub description: String,
     pub dates: BTreeSet<NaiveDate>,
+    pub goal: String
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Serialize, Deserialize, Hash)]
 pub struct HabitOptional {
     pub name: Option<String>,
     pub description: Option<String>,
+    pub goal: Option<String>
 }
 
 #[derive(Serialize, Deserialize)]

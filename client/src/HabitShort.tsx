@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useCallback } from "react";
 import { DateTime } from "luxon";
 import { useMediaQuery } from "react-responsive";
+import { Goal } from "./goal";
 
 const HabitShort = ({ habit, week }: { habit: Habit; week: DateTime }) => {
   const api = useApi();
@@ -53,6 +54,15 @@ const HabitShort = ({ habit, week }: { habit: Habit; week: DateTime }) => {
       <Link to={`/habit/${habit.id}`}>
         <h2 className="subtitle ml-2 is-4">{habit.name}</h2>
       </Link>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+        }}
+      >
+        <Goal habit={habit} date={week} />
+      </div>
       <div className="columns is-mobile is-centered has-text-centered">
         <span className={`column ${!isMobile ? "is-4" : ""}`}></span>
         {daysOfWeek}

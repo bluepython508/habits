@@ -49,6 +49,7 @@ const habits = createSlice({
           name: payload.name ?? habit.name,
           description: payload.description ?? habit.description,
           dates: habit.dates,
+          goal: payload.goal ?? habit.goal,
         },
       };
     },
