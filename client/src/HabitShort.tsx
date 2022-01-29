@@ -33,6 +33,7 @@ const HabitShort = ({ habit, week }: { habit: Habit; week: DateTime }) => {
           : ""
       }`}
       onClick={() => day.startOf("day") > DateTime.now() || toggle(day)}
+      key={day.toISODate()}
     >
       {day.weekdayLong[0]}
     </span>
@@ -49,7 +50,7 @@ const HabitShort = ({ habit, week }: { habit: Habit; week: DateTime }) => {
         isMobile ? "" : "has-text-centered"
       } container mb-3 p-2`}
     >
-      <Link to={`/${habit.id}`}>
+      <Link to={`/habit/${habit.id}`}>
         <h2 className="subtitle ml-2 is-4">{habit.name}</h2>
       </Link>
       <div className="columns is-mobile is-centered has-text-centered">

@@ -1,0 +1,11 @@
+.animated.appearing.fromLeft {
+  transform: translateX(-100%);
+}
+
+.animated.appearing.fromRight {
+  transform: translateX(100%);
+}
+
+.animated {
+  transition: transform 0.5s;
+}

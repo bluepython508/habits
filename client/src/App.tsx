@@ -15,7 +15,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route index element={element(<Habits />)} />
-        <Route path=":id" element={element(<HabitDetail />)} />
+        <Route path="/week/:week" element={element(<Habits />)} />
+        <Route path="/habit/:id" element={element(<HabitDetail />)} />
       </Routes>
       <Outlet />
     </BrowserRouter>

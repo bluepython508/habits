@@ -1,9 +1,12 @@
 import { DateTime } from "luxon";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSwipeable } from "react-swipeable";
 import { useApi } from "./api";
 import HabitShort from "./HabitShort";
 import { useSelector } from "./store";
+import { useNavigate, useParams } from "react-router-dom";
+import classNames from "classnames";
+import animationStyles from "./HabitsAnimation.module.css";
 
 const AddHabitModal = ({ hide }: { hide: () => void }) => {
   const [name, setName] = useState("");
@@ -73,6 +76,12 @@ function compareOn<T, U>(keyFn: (t: T) => U): (a: T, b: T) => number {
 }
 
 const Habits = () => {
+  const params = useParams();
+  const week = DateTime.fromISO(
+    params.week ?? DateTime.now().startOf("week").toISODate()
+  );
+  const oldWeek = usePrevious(week);
+
   const api = useApi();
   useEffect(() => {
     api.habits().then((habits) => {
@@ -90,18 +99,17 @@ const Habits = () => {
     [setAddModalVisible]
   );
 
-  const [week, setWeek] = useState(DateTime.now().startOf("week"));
-  const nextWeek = useCallback(
-    () =>
-      setWeek((week) =>
-        week.plus({ weeks: week.endOf("week") > DateTime.now() ? 0 : 1 })
-      ),
-    [setWeek]
-  );
-  const prevWeek = useCallback(
-    () => setWeek((week) => week.minus({ weeks: 1 })),
-    [setWeek]
-  );
+  const navigate = useNavigate();
+  const nextWeek = useCallback(() => {
+    navigate(
+      `/week/${week
+        .plus({ weeks: week.endOf("week") > DateTime.now() ? 0 : 1 })
+        .toISODate()}`
+    );
+  }, [navigate, week]);
+  const prevWeek = useCallback(() => {
+    navigate(`/week/${week.minus({ weeks: 1 }).toISODate()}`);
+  }, [navigate, week]);
 
   const swipingHandlers = useSwipeable({
     onSwipedRight: prevWeek,
@@ -147,13 +155,7 @@ const Habits = () => {
         </div>
         <hr />
       </div>
-      <div>
-        {Object.values(habits)
-          .sort(compareOn((h) => h.id))
-          .map((habit) => (
-            <HabitShort key={habit.id} habit={habit} week={week} />
-          ))}
-      </div>
+      <HabitsList week={week} prevWeek={oldWeek} key={week.toISODate()} />
       <div
         style={{
           position: "fixed",
@@ -166,6 +168,49 @@ const Habits = () => {
           Add
         </button>
       </div>
+    </div>
+  );
+};
+
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T | undefined>();
+  useEffect(() => {
+    ref.current = value;
+  }, [value]);
+
+  return ref.current;
+}
+
+const HabitsList = ({
+  week,
+  prevWeek,
+}: {
+  week: DateTime;
+  prevWeek?: DateTime;
+}) => {
+  const [appearing, setAppearing] = useState(true);
+  useEffect(() => {
+    setTimeout(() => setAppearing(false), 10);
+  }, []);
+  const habits = useSelector((state) => state.habits);
+  return (
+    <div
+      className={classNames(
+        appearing && animationStyles.appearing,
+        animationStyles.animated,
+        (prevWeek ?? week) > week && animationStyles.fromLeft,
+        (prevWeek ?? week) < week && animationStyles.fromRight
+      )}
+    >
+      {Object.values(habits)
+        .sort(compareOn((h) => h.id))
+        .map((habit) => (
+          <HabitShort
+            key={week.toISODate() + habit.id}
+            habit={habit}
+            week={week}
+          />
+        ))}
     </div>
   );
 };
