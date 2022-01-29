@@ -90,43 +90,69 @@ const Habits = () => {
     [setAddModalVisible]
   );
 
-  const [week, setWeek] = useState(DateTime.now().startOf('week'))
-  const nextWeek = useCallback(() => setWeek(week => week.plus({ weeks: week.endOf('week') > DateTime.now() ? 0 : 1 })), [setWeek])
-  const prevWeek = useCallback(() => setWeek(week => week.minus({ weeks: 1 })), [setWeek])
+  const [week, setWeek] = useState(DateTime.now().startOf("week"));
+  const nextWeek = useCallback(
+    () =>
+      setWeek((week) =>
+        week.plus({ weeks: week.endOf("week") > DateTime.now() ? 0 : 1 })
+      ),
+    [setWeek]
+  );
+  const prevWeek = useCallback(
+    () => setWeek((week) => week.minus({ weeks: 1 })),
+    [setWeek]
+  );
 
   const swipingHandlers = useSwipeable({
     onSwipedRight: prevWeek,
     onSwipedLeft: nextWeek,
-    preventDefaultTouchmoveEvent: true
-  })
+    preventDefaultTouchmoveEvent: true,
+  });
 
   return (
-    <div className={addModalVisible ? "is-clipped" : ""} {...swipingHandlers} style={{
-      height: '100vh'
-    }}>
+    <div
+      className={addModalVisible ? "is-clipped" : ""}
+      {...swipingHandlers}
+      style={{
+        height: "100vh",
+      }}
+    >
       {addModalVisible && <AddHabitModal hide={hideAddModal} />}
-      <div className="has-background-white" style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-      }}>
+      <div
+        className="has-background-white"
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+        }}
+      >
         <div className="level is-mobile container">
           <div className="level-left">
-            <button onClick={prevWeek} className="ml-2 mt-2 button">{'<'}</button>
+            <button onClick={prevWeek} className="ml-2 mt-2 button">
+              {"<"}
+            </button>
           </div>
-          <h2 className="level-item title is-4 has-text-centered">Week of {week.toISODate()}</h2>
+          <h2 className="level-item title is-4 has-text-centered">
+            Week of {week.toISODate()}
+          </h2>
           <div className="level-right">
-            <button onClick={nextWeek} className="button mr-2 mt-2" disabled={week.endOf('week') > DateTime.now()}>{'>'}</button>
+            <button
+              onClick={nextWeek}
+              className="button mr-2 mt-2"
+              disabled={week.endOf("week") > DateTime.now()}
+            >
+              {">"}
+            </button>
           </div>
         </div>
         <hr />
       </div>
-      <div {...swipingHandlers}>
-      {Object.values(habits)
-        .sort(compareOn((h) => h.id))
-        .map((habit) => (
-          <HabitShort key={habit.id} habit={habit} week={week} />
-        ))}
+      <div>
+        {Object.values(habits)
+          .sort(compareOn((h) => h.id))
+          .map((habit) => (
+            <HabitShort key={habit.id} habit={habit} week={week} />
+          ))}
       </div>
       <div
         style={{

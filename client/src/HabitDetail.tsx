@@ -43,9 +43,11 @@ const Header = ({ habit, edit }: { habit: Habit; edit: () => void }) => {
   return (
     <div>
       <h1 className="title">{habit.name}</h1>
-      {habit.description && <pre className="container box content is-family-primary">
-        {habit.description}
-      </pre>}
+      {habit.description && (
+        <pre className="container box content is-family-primary">
+          {habit.description}
+        </pre>
+      )}
       <button
         className="button is-warning m-4"
         style={{
@@ -90,13 +92,13 @@ const EditHeader = ({
     });
     stopEdit();
   }, [api, habitName, stopEdit, habit, habitDesc]);
-  const isMobile = useMediaQuery({ query: `(max-width: 768px)` })
+  const isMobile = useMediaQuery({ query: `(max-width: 768px)` });
   return (
     <div>
       {isDeleteModalVisible && (
         <DeleteModal habit={habit} hide={hideDeleteModal} />
       )}
-      <div className={`buttons is-centered ${isMobile ? 'pl-6 ml-3' : ''}`}>
+      <div className={`buttons is-centered ${isMobile ? "pl-6 ml-3" : ""}`}>
         <button className="button is-danger" onClick={showDeleteModal}>
           Delete
         </button>
