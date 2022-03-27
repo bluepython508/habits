@@ -27,7 +27,7 @@ export const Goal = ({ habit, date }: { habit: Habit; date: DateTime }) => {
     date.startOf("week").plus({ days: day })
   );
   const daysMet = week.filter((day) =>
-    habit.dates.includes(day.toISODate())
+    (habit.dates[day.toISODate()] ?? 0) > 0
   ).length;
   const met = daysMet >= goal.perWeek;
   return (

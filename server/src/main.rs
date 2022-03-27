@@ -3,7 +3,7 @@ use std::{collections::BTreeMap, str::FromStr};
 
 use chrono::NaiveDate;
 mod common;
-use common::{Habit, HabitOptional, Id, Name};
+use common::{Habit, HabitOptional, Id, Name, Amount};
 use rocket::{
     build, catch, catchers, delete,
     fs::{FileServer, NamedFile},
@@ -100,25 +100,15 @@ async fn delete_habit(db: Db<'_>, user: User, id: ParamFromStr<Ulid>) -> Result<
     Ok(())
 }
 
-#[post("/habits/<id>/<date>")]
+#[post("/habits/<id>/<date>", data = "<amount>")]
 async fn complete_habit(
     db: Db<'_>,
     user: User,
     id: ParamFromStr<Ulid>,
     date: ParamFromStr<NaiveDate>,
+    amount: Json<Amount>,
 ) -> Result<()> {
-    db.complete_habit(user, id.0, date.0).await?;
-    Ok(())
-}
-
-#[delete("/habits/<id>/<date>")]
-async fn uncomplete_habit(
-    db: Db<'_>,
-    user: User,
-    id: ParamFromStr<Ulid>,
-    date: ParamFromStr<NaiveDate>,
-) -> Result<()> {
-    db.uncomplete_habit(user, id.0, date.0).await?;
+    db.complete_habit(user, id.0, date.0, amount.0.amount).await?;
     Ok(())
 }
 
@@ -151,7 +141,6 @@ fn launch() -> _ {
                 get_habit,
                 delete_habit,
                 complete_habit,
-                uncomplete_habit,
                 update_habit,
                 signup,
                 check_user

@@ -84,17 +84,22 @@ const EditHeader = ({
   const [habitName, setName] = useState(habit.name);
   const [habitDesc, setDesc] = useState(habit.description);
   const [habitGoal, setGoal] = useState(habit.goal);
+  const [habitDaily, setDaily] = useState(habit.daily);
   const onChangeName = useCallback((e) => setName(e.target.value), [setName]);
   const onChangeDesc = useCallback((e) => setDesc(e.target.value), [setDesc]);
   const onChangeGoal = useCallback(
     (e) => {
-      if (e.target.value != 0) {
+      if (e.target.value !== 0) {
         setGoal(JSON.stringify({ perWeek: e.target.value }));
       } else {
         setGoal("");
       }
     },
     [setGoal]
+  );
+  const onChangeDaily = useCallback(
+    (e) => setDaily(Number(e.target.value)),
+    [setDaily]
   );
   const api = useApi();
   const save = useCallback(() => {
@@ -103,9 +108,10 @@ const EditHeader = ({
       name: habitName === habit.name ? undefined : habitName,
       description: habitDesc === habit.description ? undefined : habitDesc,
       goal: habitGoal === habit.goal ? undefined : habitGoal,
+      daily: habitDaily === habit.daily ? undefined : habitDaily,
     });
     stopEdit();
-  }, [api, habitName, stopEdit, habit, habitDesc, habitGoal]);
+  }, [api, habitName, stopEdit, habit, habitDesc, habitGoal, habitDaily]);
   const isMobile = useMediaQuery({ query: `(max-width: 768px)` });
   return (
     <div>
@@ -139,6 +145,14 @@ const EditHeader = ({
           placeholder="Goal"
           min="0"
           max="7"
+        />
+        <input
+          className="container input control"
+          type="number"
+          value={habitDaily}
+          onChange={onChangeDaily}
+          placeholder="Daily"
+          min="0"
         />
         <textarea
           className="textarea control has-text-left"
@@ -247,29 +261,37 @@ const HabitDetail = () => {
         <tbody>
           {dates.map((row) => (
             <tr key={row[0].date.weekNumber} className="tbody">
-              {row.map(({ date, type }) => (
-                <td
-                  key={date.toISODate()}
-                  className={`${
-                    habit.dates.includes(date.toISODate())
-                      ? `has-background-success${
-                          type === "current" ? "" : "-light"
-                        }`
-                      : ""
-                  } ${type === "current" ? "" : "has-text-grey-light"}`}
-                  onClick={() => {
-                    if (date < DateTime.now().endOf("day")) {
-                      if (habit.dates.includes(date.toISODate())) {
-                        api.setUndone(habit.id, date.toISODate());
-                      } else {
-                        api.setDone(habit.id, date.toISODate());
+              {row.map(({ date, type }) => {
+                const ratio =
+                  (habit.dates[date.toISODate()] ?? 0) / habit.daily;
+                return (
+                  <td
+                    key={date.toISODate()}
+                    className={`${
+                      type === "current" ? "" : "has-text-grey-light"
+                    } ${
+                      (habit.dates[date.toISODate()] ?? 0) > 0 &&
+                      "has-background-success"
+                    }${type === "current" ? '' : '-light'}`} // TODO: Colors
+                    style={{
+                      filter: `brightness(${1.25 - ratio / 2})`,
+                    }}
+                    onClick={() => {
+                      if (date < DateTime.now().endOf("day")) {
+                        api.setDone(
+                          habit.id,
+                          date.toISODate(),
+                          (habit.dates[date.toISODate()] ?? 0) >= habit.daily
+                            ? 0
+                            : (habit.dates[date.toISODate()] ?? 0) + 1
+                        );
                       }
-                    }
-                  }}
-                >
-                  {date.day}
-                </td>
-              ))}
+                    }}
+                  >
+                    {date.day}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>

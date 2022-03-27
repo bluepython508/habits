@@ -11,8 +11,7 @@ export interface Client {
   deleteHabit(id: string): Promise<void>;
   getHabit(id: string): Promise<void>;
   habits(): Promise<Habits>;
-  setDone(habit: string, date: string): Promise<void>;
-  setUndone(habit: string, date: string): Promise<void>;
+  setDone(habit: string, date: string, amount: number): Promise<void>;
   login(username: string, password: string): Promise<void>;
   signup(username: string, password: string): Promise<void>;
 }
@@ -37,8 +36,9 @@ export const useApi: () => Client = () => {
             id: response.data.id,
             name,
             description: "",
-            dates: [],
+            dates: {},
             goal: "",
+            daily: 1
           })
         );
       },
@@ -55,13 +55,10 @@ export const useApi: () => Client = () => {
         dispatch(actions.loadHabits(response.data));
         return response.data;
       },
-      setDone: async (habit, date) => {
-        dispatch(actions.markHabitDone({ habit, date }));
-        await client.post(`habits/${habit}/${date}`);
-      },
-      setUndone: async (habit, date) => {
-        dispatch(actions.markHabitUndone({ habit, date }));
-        await client.delete(`habits/${habit}/${date}`);
+      setDone: async (habit, date, amount) => {
+        console.log(amount)
+        dispatch(actions.markHabitDone({ habit, date, amount }));
+        await client.post(`habits/${habit}/${date}`, { amount });
       },
       updateHabit: async (habit) => {
         dispatch(actions.updateHabit(habit));

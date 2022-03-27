@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use crate::{
     common::{Habit, HabitOptional},
@@ -76,6 +76,7 @@ struct DbHabit {
     name: String,
     description: String,
     goal: String,
+    daily: u8,
 }
 
 #[derive(Table)]
@@ -86,6 +87,7 @@ struct DbHabitDate {
     habit_id: Ulid,
     #[sql(as_str)]
     date: NaiveDate,
+    count: u8,
 }
 
 impl Db<'_> {
@@ -145,6 +147,7 @@ impl Db<'_> {
                         id: x.id,
                         name: x.name,
                         goal: x.goal,
+                        daily: x.daily,
                         description: Default::default(),
                         dates: Default::default(),
                     },
@@ -154,14 +157,13 @@ impl Db<'_> {
         for (id, habit) in habits.iter_mut() {
             habit.dates = self
                 .0
-                .select((DbHabitDate::date,))
+                .select((DbHabitDate::date, DbHabitDate::count))
                 .r#where(DbHabitDate::habit_id.equals(*id))
                 .limit(64)
-                .fetch_all::<(NaiveDate,)>()
+                .fetch_all()
                 .await?
                 .into_iter()
-                .map(|x| x.0)
-                .collect()
+                .collect();
         }
         Ok(habits)
     }
@@ -169,23 +171,23 @@ impl Db<'_> {
     pub async fn get_habit(&self, user: User, id: Ulid) -> Result<Habit> {
         self.check_habit_owned_by(id, user).await?;
 
-        let Some((name, description, goal)) = self
+        let Some((name, description, goal, daily)) = self
             .0
-            .select((DbHabit::name, DbHabit::description, DbHabit::goal))
+            .select((DbHabit::name, DbHabit::description, DbHabit::goal, DbHabit::daily))
             .r#where(DbHabit::id.equals(id))
             .limit(1)
-            .fetch_all::<(String, String, String)>()
+            .fetch_all()
             .await?
             .pop() else { return Err(anyhow::anyhow!("Habit not found")).context(Status::NotFound) };
-        let dates: BTreeSet<chrono::NaiveDate> = self
+
+        let dates: BTreeMap<chrono::NaiveDate, u8> = self
             .0
-            .select((DbHabitDate::date,))
+            .select((DbHabitDate::date, DbHabitDate::count))
             .r#where(DbHabitDate::habit_id.equals(id))
             .order_by(DbHabitDate::date, Ordering::Descending)
-            .fetch_all::<(NaiveDate,)>()
+            .fetch_all()
             .await?
             .into_iter()
-            .map(|x| x.0)
             .collect();
 
         Ok(Habit {
@@ -194,20 +196,17 @@ impl Db<'_> {
             description,
             dates,
             goal,
+            daily,
         })
     }
 
-    pub async fn complete_habit(&self, user: User, habit: Ulid, date: NaiveDate) -> Result<()> {
-        self.check_habit_owned_by(habit, user).await?;
-        self.0
-            .insert_into(DbHabitDate::COLUMNS)
-            .values((habit, date))
-            .execute()
-            .await?;
-        Ok(())
-    }
-
-    pub async fn uncomplete_habit(&self, user: User, habit: Ulid, date: NaiveDate) -> Result<()> {
+    pub async fn complete_habit(
+        &self,
+        user: User,
+        habit: Ulid,
+        date: NaiveDate,
+        amount: u8,
+    ) -> Result<()> {
         self.check_habit_owned_by(habit, user).await?;
         self.0
             .delete_where(
@@ -217,6 +216,11 @@ impl Db<'_> {
             )
             .execute()
             .await?;
+        self.0
+            .insert_into(DbHabitDate::COLUMNS)
+            .values((habit, date, amount))
+            .execute()
+            .await?;
         Ok(())
     }
 
@@ -224,7 +228,7 @@ impl Db<'_> {
         let id = Ulid::new();
         self.0
             .insert_into(DbHabit::COLUMNS)
-            .values((id, user.id, name, String::new(), String::new()))
+            .values((id, user.id, name, String::new(), String::new(), 1))
             .execute()
             .await?;
         Ok(id)
@@ -281,6 +285,7 @@ impl Db<'_> {
             name,
             description,
             goal,
+            daily,
         } = update;
         let mut update = self.0.update().r#where(DbHabit::id.equals(id));
 
@@ -293,6 +298,10 @@ impl Db<'_> {
         if let Some(goal) = goal {
             update = update.set(DbHabit::goal, goal);
         }
+        if let Some(daily) = daily {
+            update = update.set(DbHabit::daily, daily)
+        }
+        
         update.execute().await?;
         Ok(())
     }

@@ -24,18 +24,10 @@ const habits = createSlice({
     markHabitDone: (
       state: Habits,
       {
-        payload: { habit, date },
-      }: PayloadAction<{ habit: string; date: string }>
+        payload: { habit, date, amount },
+      }: PayloadAction<{ habit: string; date: string, amount: number }>
     ) => {
-      state[habit].dates.push(date);
-    },
-    markHabitUndone: (
-      state: Habits,
-      {
-        payload: { habit, date },
-      }: PayloadAction<{ habit: string; date: string }>
-    ) => {
-      state[habit].dates = state[habit].dates.filter((d) => d !== date);
+      state[habit].dates[date] = amount
     },
     updateHabit: (
       state: Habits,
@@ -50,6 +42,7 @@ const habits = createSlice({
           description: payload.description ?? habit.description,
           dates: habit.dates,
           goal: payload.goal ?? habit.goal,
+          daily: payload.daily ?? habit.daily
         },
       };
     },

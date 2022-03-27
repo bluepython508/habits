@@ -283,7 +283,7 @@ dependencies = [
 [[package]]
 name = "derive"
 version = "0.1.0"
-source = "git+https://github.com/bluepython508/sql-rs#d832a8b201032562bb04ec143273ec04c1fbd9e0"
+source = "git+https://github.com/bluepython508/sql-rs#7ef0fd806c50da29f040f4b19a70cba2c3fbee94"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1430,7 +1430,7 @@ checksum = "511254be0c5bcf062b019a6c89c01a664aa359ded62f78aa72c6fc137c0590e5"
 [[package]]
 name = "sql"
 version = "0.1.0"
-source = "git+https://github.com/bluepython508/sql-rs#d832a8b201032562bb04ec143273ec04c1fbd9e0"
+source = "git+https://github.com/bluepython508/sql-rs#7ef0fd806c50da29f040f4b19a70cba2c3fbee94"
 dependencies = [
  "anyhow",
  "async-trait",

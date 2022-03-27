@@ -2,8 +2,9 @@ export interface Habit {
   id: string;
   name: string;
   description: string;
-  dates: string[];
+  dates: { [date: string]: number | undefined };
   goal: string;
+  daily: number;
 }
 
 export type Habits = {
