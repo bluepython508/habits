@@ -74,7 +74,7 @@ async fn habits(db: Db<'_>, user: User) -> Result<Json<BTreeMap<Ulid, Habit>>> {
 #[post("/habits", data = "<name>")]
 async fn new_habit(db: Db<'_>, user: User, name: Json<Name>) -> Result<Json<Id>> {
     Ok(Json(Id {
-        id: db.new_habit(user, name.name.clone()).await?,
+        id: db.new_habit(user, name.0.name).await?,
     }))
 }
 
@@ -90,7 +90,7 @@ async fn update_habit(
     id: ParamFromStr<Ulid>,
     update: Json<HabitOptional>,
 ) -> Result<()> {
-    db.update_habit(user, id.0, &*update).await?;
+    db.update_habit(user, id.0, update.0).await?;
     Ok(())
 }
 

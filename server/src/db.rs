@@ -275,32 +275,25 @@ impl Db<'_> {
         })
     }
 
-    pub async fn update_habit(&self, user: User, id: Ulid, update: &HabitOptional) -> Result<()> {
+    pub async fn update_habit(&self, user: User, id: Ulid, update: HabitOptional) -> Result<()> {
         self.check_habit_owned_by(id, user).await?;
-        if let Some(name) = &update.name {
-            self.0
-                .update()
-                .r#where(DbHabit::id.equals(id))
-                .set(DbHabit::name, name.clone())
-                .execute()
-                .await?
+        let HabitOptional {
+            name,
+            description,
+            goal,
+        } = update;
+        let mut update = self.0.update().r#where(DbHabit::id.equals(id));
+
+        if let Some(name) = name {
+            update = update.set(DbHabit::name, name);
         }
-        if let Some(description) = &update.description {
-            self.0
-                .update()
-                .r#where(DbHabit::id.equals(id))
-                .set(DbHabit::description, description.clone())
-                .execute()
-                .await?
+        if let Some(description) = description {
+            update = update.set(DbHabit::description, description);
         }
-        if let Some(goal) = &update.goal {
-            self.0
-                .update()
-                .r#where(DbHabit::id.equals(id))
-                .set(DbHabit::goal, goal.clone())
-                .execute()
-                .await?
+        if let Some(goal) = goal {
+            update = update.set(DbHabit::goal, goal);
         }
+        update.execute().await?;
         Ok(())
     }
 }

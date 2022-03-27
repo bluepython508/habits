@@ -4,7 +4,7 @@ WORKDIR /app
 COPY client/ /app/
 RUN --mount=type=cache,target=/app/node_modules yarn install --prod && yarn build
 
-FROM instrumentisto/rust:nightly-2021-12-09 as rust
+FROM instrumentisto/rust:nightly-2022-03-25 as rust
 WORKDIR /app
 RUN apt-get update && apt-get install sqlite3 && apt-get clean
 # Force cargo to update index - lazy_static doesn't have a binary, so will fail, but only after updating index
